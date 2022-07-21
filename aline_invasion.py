@@ -31,19 +31,26 @@ class AlienInvasion:
             self.ship.update()     # 根据控制符移动
             self._update_screen()  # 更新画面
 
-
     def _check_events(self):
         """响应按键和鼠标事件,设置对应控制符"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                # 向右移动飞船
+                # 向右移动
                 if event.key == pygame.K_RIGHT:
                     self.ship.moving_right = True
+                # 向左移动
+                if event.key == pygame.K_LEFT:
+                    self.ship.moving_left = True
+
             elif event.type == pygame.KEYUP:
+                # 停止向右移动
                 if event.key == pygame.K_RIGHT:
                     self.ship.moving_right = False
+                # 停止向左移动
+                if event.key == pygame.K_LEFT:
+                    self.ship.moving_left = False
 
     def _update_screen(self):
         """更新屏幕上的图像，并切换到新屏幕"""
