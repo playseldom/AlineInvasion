@@ -41,6 +41,7 @@ class AlienInvasion:
             self._check_events()   # 更新控制符
             self.ship.update()     # 根据控制符移动
             self.bullets.update()  # 更新子弹位置
+            self._update_alines()   # 更新外星人位置，与子弹有先后顺序
             self.delect_bullet(self.bullets)  # 删除消失的子弹
             self._update_screen()  # 更新画面
 
@@ -84,11 +85,11 @@ class AlienInvasion:
         self.screen.fill(self.settings.bg_colour)
         # 画飞船
         self.ship.blitme()
+        # 画外星人
+        self.alines.draw(self.screen)
         # 画子弹
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
-        # 画外星人
-        self.alines.draw(self.screen)
         # 让最近绘制的屏幕可见。
         pygame.display.flip()
 
@@ -103,6 +104,14 @@ class AlienInvasion:
         for bullet in bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
+
+    def _update_alines(self):
+        """
+        更新外星人群中所有外星人的位置
+        更新整群外星人的位置
+        """
+        self._check_fleet_edges()
+        self.alines.update()
 
     def _creat_fleet(self):
         """创建外星人群"""
@@ -129,6 +138,20 @@ class AlienInvasion:
         aline.rect.x = aline.x
         aline.rect.y = aline.y
         self.alines.add(aline)
+
+    def _check_fleet_edges(self):
+        """有外星人碰到边界时采取相应措施"""
+        for aline in self.alines.sprites():
+            if aline.check_edges():
+                self._change_fleet_direction()
+                break
+
+    def _change_fleet_direction(self):
+        """将整群外星人下移，并且改变他们的方向"""
+        for aline in self.alines.sprites():  # 遍历每个外星人，每个外星人都执行相同的操作
+            aline.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
+        # 这里很奇怪！！！
 
 
 if __name__ == '__main__':
