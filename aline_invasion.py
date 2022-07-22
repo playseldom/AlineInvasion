@@ -6,6 +6,7 @@ from ship import Ship
 from bullet import Bullet
 from aline import Aline
 
+
 class AlienInvasion:
     """管理游戏资源和行为的类"""
 
@@ -40,7 +41,7 @@ class AlienInvasion:
             self._check_events()   # 更新控制符
             self.ship.update()     # 根据控制符移动
             self.bullets.update()  # 更新子弹位置
-            self.delect_bullet(self.bullets) # 删除消失的子弹
+            self.delect_bullet(self.bullets)  # 删除消失的子弹
             self._update_screen()  # 更新画面
 
     def _check_events(self):
@@ -105,9 +106,30 @@ class AlienInvasion:
 
     def _creat_fleet(self):
         """创建外星人群"""
-        # 创建一个外星人
+        # 创建一个外星人并计算一行可以容纳多少个外星人
+        # 设外星人之间的间距为一个外星人的单位
         aline = Aline(self)
+        aline_width, aline_hight = aline.rect.size
+        available_space_x = self.settings.screen_width - (2 * aline_width)
+        available_space_y = self.settings.screen_height - self.ship.rect.height - (6 * aline_hight)
+        numble_aline_x = available_space_x // (2 * aline_width)
+        numble_aline_y = available_space_y // (2 * aline_hight)
+
+        # 创建行和列的外星人
+        for y_aline_number in range(numble_aline_y):
+            for x_aline_number in range(numble_aline_x):  # 0, 1, 2……
+                self._create_aline(x_aline_number, y_aline_number)
+
+    def _create_aline(self, aline_number_x, aline_number_y):
+        # 创建一个外星人并将其加入当前行和列
+        aline = Aline(self)
+        aline_width, aline_height = aline.rect.size
+        aline.x = aline_width + 2 * aline_width * aline_number_x  # 设置每一行每个外星人的初始地
+        aline.y = aline_height + 2 * aline_height * aline_number_y
+        aline.rect.x = aline.x
+        aline.rect.y = aline.y
         self.alines.add(aline)
+
 
 if __name__ == '__main__':
     # 上面这段代码的作用确保这个文件作为唯一的运行入口

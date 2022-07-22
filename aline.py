@@ -1,6 +1,7 @@
 import pygame
 from pygame.sprite import Sprite
 
+
 class Aline(Sprite):
     """表示单个外星人的类"""
 
