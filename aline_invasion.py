@@ -3,7 +3,8 @@ import pygame
 
 from settings import Settings
 from ship import Ship
-
+from bullet import Bullet
+from aline import Aline
 
 class AlienInvasion:
     """管理游戏资源和行为的类"""
@@ -26,11 +27,20 @@ class AlienInvasion:
         self.ship = Ship(self)
         """这个地方的语法非常有意思，把这个文件的一个对象传到了另一个类去"""
 
+        # 创建用于存储子弹的编组
+        self.bullets = pygame.sprite.Group()
+
+        # 创建外星人编组
+        self.alines = pygame.sprite.Group()
+        self._creat_fleet()
+
     def run_game(self):
         """开始游戏的主循环"""
         while True:
             self._check_events()   # 更新控制符
             self.ship.update()     # 根据控制符移动
+            self.bullets.update()  # 更新子弹位置
+            self.delect_bullet(self.bullets) # 删除消失的子弹
             self._update_screen()  # 更新画面
 
     def _check_events(self):
@@ -38,7 +48,7 @@ class AlienInvasion:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type == pygame.KEYDOWN
+            elif event.type == pygame.KEYDOWN:
                 self._check_keydown_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_keyup_events(event)
@@ -54,6 +64,9 @@ class AlienInvasion:
         # 向左移动
         if event.key == pygame.K_LEFT:
             self.ship.moving_left = True
+        # 开火
+        if event.key == pygame.K_SPACE:
+            self._fire_buttle()
 
     def _check_keyup_events(self, event):
         """按键松开"""
@@ -70,9 +83,31 @@ class AlienInvasion:
         self.screen.fill(self.settings.bg_colour)
         # 画飞船
         self.ship.blitme()
+        # 画子弹
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
+        # 画外星人
+        self.alines.draw(self.screen)
         # 让最近绘制的屏幕可见。
         pygame.display.flip()
 
+    def _fire_buttle(self):
+        """创建一颗子弹，并将其加入编组"""
+        if len(self.bullets) < self.settings.bullet_allowed:
+            new_bullet = Bullet(self)
+            self.bullets.add(new_bullet)
+
+    def delect_bullet(self, bullets):
+        """删除过界子弹，根据copy对实体进行操作"""
+        for bullet in bullets.copy():
+            if bullet.rect.bottom <= 0:
+                self.bullets.remove(bullet)
+
+    def _creat_fleet(self):
+        """创建外星人群"""
+        # 创建一个外星人
+        aline = Aline(self)
+        self.alines.add(aline)
 
 if __name__ == '__main__':
     # 上面这段代码的作用确保这个文件作为唯一的运行入口
