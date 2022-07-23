@@ -1,10 +1,12 @@
 import sys
 import pygame
+from time import sleep
 
 from settings import Settings
 from ship import Ship
 from bullet import Bullet
 from aline import Aline
+from game_stats import GameStats
 
 
 class AlienInvasion:
@@ -34,6 +36,9 @@ class AlienInvasion:
         # 创建外星人编组
         self.alines = pygame.sprite.Group()
         self._creat_fleet()
+
+        # 创建一个用于存储游戏统计信息的实列
+        self.stats = GameStats(self)
 
     def run_game(self):
         """开始游戏的主循环"""
@@ -105,6 +110,18 @@ class AlienInvasion:
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
 
+        self._check_bullets_aline_collistions()
+
+    def _check_bullets_aline_collistions(self):
+        """响应子弹和外星人碰撞"""
+        #    如果是，就删除对应相应的子弹和外星人
+        collistions = pygame.sprite.groupcollide(
+            self.bullets, self.alines, True, True)
+        # 刷新外星人
+        if not self.alines:
+            # swlf.bullets.empty()
+            self._creat_fleet()
+
     def _update_alines(self):
         """
         更新外星人群中所有外星人的位置
@@ -112,6 +129,13 @@ class AlienInvasion:
         """
         self._check_fleet_edges()
         self.alines.update()
+
+        # 检测外星人与飞船之间的碰撞
+        if pygame.sprite.spritecollideany(self.ship, self.alines):
+            self._ship_hit()
+
+        # 检查是否有外星人到达屏幕底端
+        self._check_alines_bottom()
 
     def _creat_fleet(self):
         """创建外星人群"""
@@ -142,7 +166,7 @@ class AlienInvasion:
     def _check_fleet_edges(self):
         """有外星人碰到边界时采取相应措施"""
         for aline in self.alines.sprites():
-            if aline.check_edges():
+            if aline.check_edges():        # 这里直接用到了撞边函数
                 self._change_fleet_direction()
                 break
 
@@ -153,6 +177,31 @@ class AlienInvasion:
         self.settings.fleet_direction *= -1
         # 这里很奇怪！！！
 
+    def _ship_hit(self):
+        """相应飞船被外星人撞到"""
+
+        #将 ship_left 减 1
+        self.stats.ships_left -= 1
+
+        # 清空余下的外星人和子弹
+        self.alines.empty()
+        self.bullets.empty()
+
+        # 创建一群新的外星人，并将飞船放到屏幕低端的中央
+        self._creat_fleet()
+        self.ship.center_ship()
+
+        # 暂停
+        sleep(0.5)
+
+    def _check_alines_bottom(self):
+        """检查是否有飞船撞到了底部"""
+        screen_rect = self.screen.get_rect()
+        for aline in self.alines.sprites():
+            if aline.rect.bottom >= screen_rect.bottom:
+                # 向飞船被装一样处理
+                self._ship_hit()
+                break
 
 if __name__ == '__main__':
     # 上面这段代码的作用确保这个文件作为唯一的运行入口
