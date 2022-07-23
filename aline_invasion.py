@@ -44,10 +44,13 @@ class AlienInvasion:
         """开始游戏的主循环"""
         while True:
             self._check_events()   # 更新控制符
-            self.ship.update()     # 根据控制符移动
-            self.bullets.update()  # 更新子弹位置
-            self._update_alines()   # 更新外星人位置，与子弹有先后顺序
-            self.delect_bullet(self.bullets)  # 删除消失的子弹
+
+            if self.stats.game_active:
+                self.ship.update()     # 根据控制符移动
+                self.bullets.update()  # 更新子弹位置
+                self._update_alines()   # 更新外星人位置，与子弹有先后顺序
+                self.delect_bullet(self.bullets)  # 删除消失的子弹
+
             self._update_screen()  # 更新画面
 
     def _check_events(self):
@@ -179,20 +182,22 @@ class AlienInvasion:
 
     def _ship_hit(self):
         """相应飞船被外星人撞到"""
+        if self.stats.ships_left > 0:
+            #将 ship_left 减 1
+            self.stats.ships_left -= 1
 
-        #将 ship_left 减 1
-        self.stats.ships_left -= 1
+            # 清空余下的外星人和子弹
+            self.alines.empty()
+            self.bullets.empty()
 
-        # 清空余下的外星人和子弹
-        self.alines.empty()
-        self.bullets.empty()
+            # 创建一群新的外星人，并将飞船放到屏幕低端的中央
+            self._creat_fleet()
+            self.ship.center_ship()
 
-        # 创建一群新的外星人，并将飞船放到屏幕低端的中央
-        self._creat_fleet()
-        self.ship.center_ship()
-
-        # 暂停
-        sleep(0.5)
+            # 暂停
+            sleep(0.5)
+        else:
+            self.stats.game_active = False
 
     def _check_alines_bottom(self):
         """检查是否有飞船撞到了底部"""
