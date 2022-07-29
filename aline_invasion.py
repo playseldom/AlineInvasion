@@ -84,6 +84,8 @@ class AlienInvasion:
             # 重置游戏统计信息
             self.stats.reset_stats()
             self.stats.game_active = True
+            self.sb.prep_score()
+            self.sb.prep_level()
 
             # 清空余下的外星人和子弹
             self.alines.empty()
@@ -162,13 +164,19 @@ class AlienInvasion:
         collistions = pygame.sprite.groupcollide(
             self.bullets, self.alines, True, True)
         if collistions:
-            self.stats.score += self.settings.aline_points
-            self.sb.prep_score()
+            for alines in collistions.values():
+                self.stats.score += self.settings.aline_points * len(alines)
+            self.sb.prep_score()  # 只有击中才调用分数显示
+            self.sb.check_high_score()
         # 刷新外星人
         if not self.alines:
             # swlf.bullets.empty()
             self.settings.increase_speed()
             self._creat_fleet()
+
+            # 提高等级
+            self.stats.level += 1
+            self.sb.prep_level()
 
     def _update_alines(self):
         """
